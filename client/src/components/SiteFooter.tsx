@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactElement } from "react";
+import { tr } from "@/i18n";
 import { AlertCircle, ArrowRight, CheckCircle2, Loader2, Mail, Phone, Send } from "lucide-react";
 import { api, errMsg } from "@/lib/api";
 import { CONTACT, formatPhone, mailtoHref, telHref } from "@/config/contact";
@@ -16,11 +17,11 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 
 function validate(f: Fields): Partial<Record<keyof Fields, string>> {
   const e: Partial<Record<keyof Fields, string>> = {};
-  if (f.name.trim().length < 2) e.name = "Please enter your name.";
-  if (!EMAIL_RE.test(f.email.trim())) e.email = "Please enter a valid email address.";
-  if (f.subject.trim().length < 3) e.subject = "Please enter a subject (at least 3 characters).";
-  if (f.message.trim().length < 10) e.message = "Please write a message of at least 10 characters.";
-  else if (f.message.length > MAX.message) e.message = `Please keep your message under ${MAX.message} characters.`;
+  if (f.name.trim().length < 2) e.name = tr("Please enter your name.");
+  if (!EMAIL_RE.test(f.email.trim())) e.email = tr("Please enter a valid email address.");
+  if (f.subject.trim().length < 3) e.subject = tr("Please enter a subject (at least 3 characters).");
+  if (f.message.trim().length < 10) e.message = tr("Please write a message of at least 10 characters.");
+  else if (f.message.length > MAX.message) e.message = tr("Please keep your message under {n} characters.", { n: MAX.message });
   return e;
 }
 
@@ -42,7 +43,7 @@ export function ContactSection() {
     setBusy(true); setResult(null);
     try {
       const out = await api.post<{ ok?: boolean; id?: string }>("/contact", { name: f.name.trim(), email: f.email.trim(), subject: f.subject.trim(), message: f.message.trim(), website: trap });
-      if (!out?.ok || !out.id) throw new Error("We couldn't confirm your message was saved. Please try again.");
+      if (!out?.ok || !out.id) throw new Error(tr("We couldn't confirm your message was saved. Please try again."));
       setResult({ ok: true, name: f.name.trim(), email: f.email.trim() });
       setF(EMPTY); setTouched({});
     } catch (err) {
@@ -61,28 +62,28 @@ export function ContactSection() {
   return <section className="ct-section" id="contact" aria-labelledby="ct-title">
     <div className="ct-inner">
       <div className="ct-intro">
-        <span className="ct-eyebrow">CONTACT US</span>
-        <h2 id="ct-title">Get in Touch</h2>
-        <p>Have questions, suggestions, or want to partner with us? We'd love to hear from you.</p>
+        <span className="ct-eyebrow">{tr("CONTACT US")}</span>
+        <h2 id="ct-title">{tr("Get in Touch")}</h2>
+        <p>{tr("Have questions, suggestions, or want to partner with us? We'd love to hear from you.")}</p>
         <ul className="ct-direct">
-          <li><a href={mailtoHref()}><span className="ct-icon"><Mail size={17}/></span><span><small>Email us</small><b>{CONTACT.email}</b></span></a></li>
-          <li><a href={telHref()}><span className="ct-icon"><Phone size={17}/></span><span><small>Call us</small><b>{formatPhone(CONTACT.phone)}</b></span></a></li>
+          <li><a href={mailtoHref()}><span className="ct-icon"><Mail size={17}/></span><span><small>{tr("Email us")}</small><b>{CONTACT.email}</b></span></a></li>
+          <li><a href={telHref()}><span className="ct-icon"><Phone size={17}/></span><span><small>{tr("Call us")}</small><b>{formatPhone(CONTACT.phone)}</b></span></a></li>
         </ul>
       </div>
 
       <form className="ct-form" onSubmit={submit} noValidate aria-describedby="ct-required-note">
-        {result?.ok && <div className="ct-note ct-note-ok" role="status"><CheckCircle2 size={18}/><div><b>Thank you, {result.name}. Your message has been sent.</b><span>We've received it and will reply to {result.email}.</span></div></div>}
-        {result && !result.ok && <div className="ct-note ct-note-error" role="alert"><AlertCircle size={18}/><div><b>Your message wasn't sent.</b><span>{result.message}</span></div></div>}
+        {result?.ok && <div className="ct-note ct-note-ok" role="status"><CheckCircle2 size={18}/><div><b>{tr("Thank you, {name}. Your message has been sent.", { name: result.name })}</b><span>{tr("We've received it and will reply to {email}.", { email: result.email })}</span></div></div>}
+        {result && !result.ok && <div className="ct-note ct-note-error" role="alert"><AlertCircle size={18}/><div><b>{tr("Your message wasn't sent.")}</b><span>{result.message}</span></div></div>}
         <div className="ct-row">
-          {field("name", "Name", <input {...aria("name")} name="name" autoComplete="name" maxLength={MAX.name} value={f.name} onChange={set("name")} onBlur={blur("name")} placeholder="Your full name"/>)}
-          {field("email", "Email", <input {...aria("email")} name="email" type="email" inputMode="email" autoComplete="email" maxLength={MAX.email} value={f.email} onChange={set("email")} onBlur={blur("email")} placeholder="you@example.com"/>)}
+          {field("name", tr("Name"), <input {...aria("name")} name="name" autoComplete="name" maxLength={MAX.name} value={f.name} onChange={set("name")} onBlur={blur("name")} placeholder={tr("Your full name")}/>)}
+          {field("email", tr("Email"), <input {...aria("email")} name="email" type="email" inputMode="email" autoComplete="email" maxLength={MAX.email} value={f.email} onChange={set("email")} onBlur={blur("email")} placeholder={tr("you@example.com")}/>)}
         </div>
-        {field("subject", "Subject", <input {...aria("subject")} name="subject" maxLength={MAX.subject} value={f.subject} onChange={set("subject")} onBlur={blur("subject")} placeholder="What is this about?"/>)}
-        {field("message", "Message", <textarea {...aria("message")} name="message" rows={5} maxLength={MAX.message} value={f.message} onChange={set("message")} onBlur={blur("message")} placeholder="Write your message here…"/>)}
-        <div className="ct-trap" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={trap} onChange={e => setTrap(e.target.value)} name="website"/></label></div>
+        {field("subject", tr("Subject"), <input {...aria("subject")} name="subject" maxLength={MAX.subject} value={f.subject} onChange={set("subject")} onBlur={blur("subject")} placeholder={tr("What is this about?")}/>)}
+        {field("message", tr("Message"), <textarea {...aria("message")} name="message" rows={5} maxLength={MAX.message} value={f.message} onChange={set("message")} onBlur={blur("message")} placeholder={tr("Write your message here…")}/>)}
+        <div className="ct-trap" aria-hidden="true"><label>{tr("Website")}<input tabIndex={-1} autoComplete="off" value={trap} onChange={e => setTrap(e.target.value)} name="website"/></label></div>
         <div className="ct-actions">
-          <small id="ct-required-note" className="ct-hint">All fields are required. <span>{f.message.length}/{MAX.message}</span></small>
-          <button className="ct-submit" type="submit" disabled={busy}>{busy ? <><Loader2 size={16} className="ct-spin"/> Sending…</> : <>Send Message <Send size={15}/></>}</button>
+          <small id="ct-required-note" className="ct-hint">{tr("All fields are required.")} <span>{f.message.length}/{MAX.message}</span></small>
+          <button className="ct-submit" type="submit" disabled={busy}>{busy ? <><Loader2 size={16} className="ct-spin"/>  {tr("Sending…")}</> : <>{tr("Send Message")} <Send size={15}/></>}</button>
         </div>
       </form>
     </div>
@@ -93,19 +94,19 @@ export function SiteFooter() {
   return <footer className="site-footer">
     <div className="sf-inner">
       <div className="sf-about">
-        <div className="sf-brand"><span className="sf-logo"><img src="/edibell-logo.png" alt="EDIBELL logo" width={517} height={394}/></span><b>EDIBELL</b></div>
-        <p className="sf-tagline">Rescue food. Feed people. Nourish animals.</p>
-        <p className="sf-mission">EDIBELL reduces food waste by connecting food donors — hotels, restaurants, caterers, bakeries and more — with registered NGOs who feed people and animal welfare organizations who care for animals, so good surplus food reaches someone instead of the bin.</p>
+        <div className="sf-brand"><span className="sf-logo"><img src="/edibell-logo.png" alt={tr("EDIBELL logo")} width={517} height={394}/></span><b>EDIBELL</b></div>
+        <p className="sf-tagline">{tr("Rescue food. Feed people. Nourish animals.")}</p>
+        <p className="sf-mission">{tr("EDIBELL reduces food waste by connecting food donors — hotels, restaurants, caterers, bakeries and more — with registered NGOs who feed people and animal welfare organizations who care for animals, so good surplus food reaches someone instead of the bin.")}</p>
       </div>
       <div className="sf-contact">
-        <h3>Contact Information</h3>
+        <h3>{tr("Contact Information")}</h3>
         <ul>
-          <li><a href={mailtoHref()}><Mail size={17}/><span><small>Email</small>{CONTACT.email}</span></a></li>
-          <li><a href={telHref()}><Phone size={17}/><span><small>Phone</small>{formatPhone(CONTACT.phone)}</span></a></li>
+          <li><a href={mailtoHref()}><Mail size={17}/><span><small>{tr("Email")}</small>{CONTACT.email}</span></a></li>
+          <li><a href={telHref()}><Phone size={17}/><span><small>{tr("Phone")}</small>{formatPhone(CONTACT.phone)}</span></a></li>
         </ul>
-        <a className="sf-message" href="/#contact">Send us a message <ArrowRight size={14}/></a>
+        <a className="sf-message" href="/#contact">{tr("Send us a message")} <ArrowRight size={14}/></a>
       </div>
     </div>
-    <div className="sf-bottom"><span>© {new Date().getFullYear()} EDIBELL. All rights reserved.</span></div>
+    <div className="sf-bottom"><span>{tr("© {year} EDIBELL. All rights reserved.", { year: new Date().getFullYear() })}</span></div>
   </footer>;
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { photoUrl, requireSupabase, SUPABASE_SETUP_MESSAGE, supabaseConfigured } from "./supabase";
+import { trServer } from "@/i18n";
 
 /**
  * EDIBELL data access.
@@ -162,6 +163,7 @@ export function useFetch<T>(url: string | null, opts: { pollMs?: number } = {}) 
   return { data, error, loading, reload: () => load(true) };
 }
 
+/** A user-facing message for an error, in the selected language (messages stay English internally). */
 export function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : "Something went wrong.";
+  return trServer(e instanceof Error ? e.message : "Something went wrong.");
 }

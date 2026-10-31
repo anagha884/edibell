@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { tr } from "@/i18n";
 import QRCode from "qrcode";
 import jsQR from "jsqr";
 import { Camera, CameraOff, ImageUp, StopCircle } from "lucide-react";
@@ -14,7 +15,7 @@ export function QrImage({ value, size = 260, dimmed = false, label }: { value: s
     return () => { live = false; };
   }, [value, size]);
   return <div className={`eb-qr ${dimmed ? "dim" : ""}`} style={{ width: size, height: size }}>
-    {src ? <img src={src} width={size} height={size} alt={label ?? "Pickup QR code"}/> : <span className="eb-muted">Generating…</span>}
+    {src ? <img src={src} width={size} height={size} alt={label ?? tr("Pickup QR code")}/> : <span className="eb-muted">{tr("Generating…")}</span>}
   </div>;
 }
 
@@ -110,27 +111,26 @@ export function QrScanner({ onCode, busy }: { onCode: (text: string) => void; bu
       const img = await new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
       const scale = Math.min(1, 1400 / Math.max(img.width, img.height));
       const text = decodeImage(img, Math.round(img.width * scale), Math.round(img.height * scale));
-      if (text) onCodeRef.current(text); else setUploadMsg("No QR code was found in that picture. Try a sharper, closer photo.");
-    } catch { setUploadMsg("That file couldn't be read as an image."); }
+      if (text) onCodeRef.current(text); else setUploadMsg(tr("No QR code was found in that picture. Try a sharper, closer photo."));
+    } catch { setUploadMsg(tr("That file couldn't be read as an image.")); }
     finally { URL.revokeObjectURL(url); }
   };
 
   return <div className="eb-scanner">
     <div className={`eb-viewfinder ${state}`}>
-      <video ref={video} muted playsInline aria-label="Camera preview"/>
+      <video ref={video} muted playsInline aria-label={tr("Camera preview")}/>
       {state !== "live" && <div className="eb-viewfinder-idle">
         {state === "error" ? <CameraOff size={30}/> : <Camera size={30}/>}
-        <p>{state === "starting" ? "Starting camera…" : state === "error" ? "Camera unavailable" : "Camera is off"}</p>
+        <p>{state === "starting" ? tr("Starting camera…") : state === "error" ? tr("Camera unavailable") : tr("Camera is off")}</p>
       </div>}
       {state === "live" && <div className="eb-reticle" aria-hidden="true"><i/><i/><i/><i/></div>}
     </div>
-    {error && <p className="eb-error" role="alert">{error}</p>}
+    {error && <p className="eb-error" role="alert">{tr(error)}</p>}
     <div className="eb-scanner-actions">
       {state === "live"
-        ? <button type="button" className="button button-outline" onClick={stop}><StopCircle size={15}/> Stop camera</button>
-        : <button type="button" className="button" onClick={() => void start()} disabled={state === "starting"}><Camera size={15}/> {state === "error" ? "Try camera again" : "Start camera"}</button>}
-      <label className="button button-outline eb-file-btn"><ImageUp size={15}/> Upload QR photo
-        <input type="file" accept="image/*" hidden onChange={e => { void fromFile(e.target.files?.[0]); e.target.value = ""; }}/></label>
+        ? <button type="button" className="button button-outline" onClick={stop}><StopCircle size={15}/>  {tr("Stop camera")}</button>
+        : <button type="button" className="button" onClick={() => void start()} disabled={state === "starting"}><Camera size={15}/> {state === "error" ? tr("Try camera again") : tr("Start camera")}</button>}
+      <label className="button button-outline eb-file-btn"><ImageUp size={15}/>  {tr("Upload QR photo")}<input type="file" accept="image/*" hidden onChange={e => { void fromFile(e.target.files?.[0]); e.target.value = ""; }}/></label>
     </div>
     {uploadMsg && <p className="eb-error" role="alert">{uploadMsg}</p>}
   </div>;

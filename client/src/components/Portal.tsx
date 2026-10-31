@@ -1,4 +1,6 @@
 import { BackButton } from "./BackButton";
+import { tr, trServer } from "@/i18n";
+import { LanguageSelector } from "./LanguageSelector";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -62,7 +64,7 @@ function useRealtimeNotifications(userId: string | undefined) {
         const n = payload.new as { id: string; title: string; body: string };
         if (seen.current.has(n.id)) return;
         seen.current.add(n.id);
-        toast(n.title, { description: n.body });
+        toast(trServer(n.title), { description: trServer(n.body) });
         notifyDataChanged();
       })
       .subscribe();
@@ -85,27 +87,28 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const doLogout = async () => { await logout(); setLocation("/login"); };
 
   return <div className="dashboard-shell eb-shell" data-role={user.role}>
-    <aside className="sidebar"><Brand light/><div className="side-label">{WORKSPACE[user.role]}</div>
+    <aside className="sidebar"><Brand light/><div className="side-label">{tr(WORKSPACE[user.role])}</div>
       <nav>{items.map(item => {
         const Icon = item.icon;
         const active = current?.href === item.href;
         return <Link key={item.href} href={item.href} className={`side-link ${active ? "active" : ""}`} aria-current={active ? "page" : undefined}>
-          <Icon size={16}/><span>{item.label}</span>
+          <Icon size={16}/><span>{tr(item.label)}</span>
           {item.label === "Notifications" && unread > 0 && <em className="eb-badge">{unread > 9 ? "9+" : unread}</em>}
         </Link>;
       })}</nav>
-      <div className="side-bottom"><button type="button" className="side-link logout-button" onClick={() => void doLogout()}><LogOut size={16}/><span>Logout</span></button></div>
+      <div className="side-bottom"><button type="button" className="side-link logout-button" onClick={() => void doLogout()}><LogOut size={16}/><span>{tr("Logout")}</span></button></div>
     </aside>
     <section className="workspace">
       <header className="topbar">
-        <div className="eb-top-left"><BackButton fallback={ROLE_HOME[user.role]}/><div className="crumb"><span>{ROLE_LABEL[user.role]}</span><span className="crumb-dot">/</span><strong>{current?.label ?? "Dashboard"}</strong></div></div>
+        <div className="eb-top-left"><BackButton fallback={ROLE_HOME[user.role]}/><div className="crumb"><span>{tr(ROLE_LABEL[user.role])}</span><span className="crumb-dot">/</span><strong>{current ? tr(current.label) : tr("Dashboard")}</strong></div></div>
         <div className="top-actions">
-          <Link href={profileHref} className={`eb-verify-chip ${user.verificationStatus}`} title={VERIFICATION_LABEL[user.verificationStatus]}>
-            <ShieldCheck size={13}/><span>{user.verificationStatus === "verified" ? "Verified" : user.verificationStatus === "rejected" ? "Not verified" : "Verification pending"}</span>
+          <LanguageSelector className="eb-lang-portal"/>
+          <Link href={profileHref} className={`eb-verify-chip ${user.verificationStatus}`} title={tr(VERIFICATION_LABEL[user.verificationStatus])}>
+            <ShieldCheck size={13}/><span>{user.verificationStatus === "verified" ? tr("Verified") : user.verificationStatus === "rejected" ? tr("Not verified") : tr("Verification pending")}</span>
           </Link>
-          <Link href={notificationsHref} className="icon-button" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}><Bell size={16}/>{unread > 0 && <i/>}</Link>
-          <Link href={profileHref} className="user-mini"><span className="avatar">{user.orgName.slice(0, 1).toUpperCase()}</span><span><b>{user.orgName}</b><small>{ROLE_LABEL[user.role]}</small></span><ChevronDown size={13}/></Link>
-          <button type="button" className="icon-button eb-mobile-logout" aria-label="Log out" onClick={() => void doLogout()}><LogOut size={16}/></button>
+          <Link href={notificationsHref} className="icon-button" aria-label={unread ? tr("Notifications, {n} unread", { n: unread }) : tr("Notifications")}><Bell size={16}/>{unread > 0 && <i/>}</Link>
+          <Link href={profileHref} className="user-mini"><span className="avatar">{user.orgName.slice(0, 1).toUpperCase()}</span><span><b>{user.orgName}</b><small>{tr(ROLE_LABEL[user.role])}</small></span><ChevronDown size={13}/></Link>
+          <button type="button" className="icon-button eb-mobile-logout" aria-label={tr("Log out")} onClick={() => void doLogout()}><LogOut size={16}/></button>
         </div>
       </header>
       <main className="page-content">{children}</main>
@@ -121,6 +124,6 @@ export function Protected({ role, adminOnly = false, children }: { role?: Role; 
     : adminOnly ? (user.isAdmin ? null : ROLE_HOME[user.role])
     : role && user.role !== role ? ROLE_HOME[user.role] : null;
   useEffect(() => { if (dest) setLocation(dest, { replace: true }); }, [dest, setLocation]);  // replace: keeps browser Back from bouncing
-  if (loading || dest) return <main className="route-guard" role="status"><Loading label="Opening your EDIBELL workspace…"/></main>;
+  if (loading || dest) return <main className="route-guard" role="status"><Loading label={tr("Opening your EDIBELL workspace…")}/></main>;
   return <PortalShell>{children}</PortalShell>;
 }

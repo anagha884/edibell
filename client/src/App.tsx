@@ -12,14 +12,14 @@ import { CreateDonationPage, DonorDashboard, DonorDonationsPage, DonorRequestsPa
 import { FinderPage, HistoryPage, MyRequestsPage, PickupQrPage, RecipientDashboard } from "./pages/RecipientPages";
 import { ImpactPage, NotificationsPage, ProfilePage } from "./pages/SharedPages";
 import { AdminPage } from "./pages/AdminPages";
-import type { ReactNode } from "react";
-import type { Role } from "@shared/edibell";
+import { LanguageProvider, tr } from "./i18n";
 
 /**
  * Three isolated portals. The route guard is a convenience only: every read
  * and write is authorized again by the database (RLS + role-checked functions).
+ * Routes render elements (not component factories) so that re-rendering the
+ * app — e.g. after a language change — never remounts the current page.
  */
-const page = (role: Role, node: ReactNode) => () => <Protected role={role}>{node}</Protected>;
 
 function Router() {
   return <Switch>
@@ -30,36 +30,36 @@ function Router() {
     <Route path="/forgot-password" component={ForgotPasswordPage}/>
     <Route path="/reset-password" component={ResetPasswordPage}/>
 
-    <Route path="/donor" component={page("donor", <DonorDashboard/>)}/>
-    <Route path="/donor/create" component={page("donor", <CreateDonationPage/>)}/>
-    <Route path="/donor/listings/:id/edit" component={page("donor", <EditListingPage/>)}/>
-    <Route path="/donor/requests" component={page("donor", <DonorRequestsPage/>)}/>
-    <Route path="/donor/donations" component={page("donor", <DonorDonationsPage/>)}/>
-    <Route path="/donor/scanner" component={page("donor", <DonorScannerPage/>)}/>
-    <Route path="/donor/notifications" component={page("donor", <NotificationsPage/>)}/>
-    <Route path="/donor/impact" component={page("donor", <ImpactPage/>)}/>
-    <Route path="/donor/profile" component={page("donor", <ProfilePage/>)}/>
+    <Route path="/donor"><Protected role="donor"><DonorDashboard/></Protected></Route>
+    <Route path="/donor/create"><Protected role="donor"><CreateDonationPage/></Protected></Route>
+    <Route path="/donor/listings/:id/edit"><Protected role="donor"><EditListingPage/></Protected></Route>
+    <Route path="/donor/requests"><Protected role="donor"><DonorRequestsPage/></Protected></Route>
+    <Route path="/donor/donations"><Protected role="donor"><DonorDonationsPage/></Protected></Route>
+    <Route path="/donor/scanner"><Protected role="donor"><DonorScannerPage/></Protected></Route>
+    <Route path="/donor/notifications"><Protected role="donor"><NotificationsPage/></Protected></Route>
+    <Route path="/donor/impact"><Protected role="donor"><ImpactPage/></Protected></Route>
+    <Route path="/donor/profile"><Protected role="donor"><ProfilePage/></Protected></Route>
 
-    <Route path="/ngo" component={page("ngo", <RecipientDashboard role="ngo"/>)}/>
-    <Route path="/ngo/finder" component={page("ngo", <FinderPage role="ngo"/>)}/>
-    <Route path="/ngo/requests" component={page("ngo", <MyRequestsPage role="ngo"/>)}/>
-    <Route path="/ngo/pickup" component={page("ngo", <PickupQrPage role="ngo"/>)}/>
-    <Route path="/ngo/history" component={page("ngo", <HistoryPage role="ngo"/>)}/>
-    <Route path="/ngo/notifications" component={page("ngo", <NotificationsPage/>)}/>
-    <Route path="/ngo/impact" component={page("ngo", <ImpactPage/>)}/>
-    <Route path="/ngo/profile" component={page("ngo", <ProfilePage/>)}/>
+    <Route path="/ngo"><Protected role="ngo"><RecipientDashboard role="ngo"/></Protected></Route>
+    <Route path="/ngo/finder"><Protected role="ngo"><FinderPage role="ngo"/></Protected></Route>
+    <Route path="/ngo/requests"><Protected role="ngo"><MyRequestsPage role="ngo"/></Protected></Route>
+    <Route path="/ngo/pickup"><Protected role="ngo"><PickupQrPage role="ngo"/></Protected></Route>
+    <Route path="/ngo/history"><Protected role="ngo"><HistoryPage role="ngo"/></Protected></Route>
+    <Route path="/ngo/notifications"><Protected role="ngo"><NotificationsPage/></Protected></Route>
+    <Route path="/ngo/impact"><Protected role="ngo"><ImpactPage/></Protected></Route>
+    <Route path="/ngo/profile"><Protected role="ngo"><ProfilePage/></Protected></Route>
 
-    <Route path="/animal" component={page("animal", <RecipientDashboard role="animal"/>)}/>
-    <Route path="/animal/finder" component={page("animal", <FinderPage role="animal"/>)}/>
-    <Route path="/animal/requests" component={page("animal", <MyRequestsPage role="animal"/>)}/>
-    <Route path="/animal/pickup" component={page("animal", <PickupQrPage role="animal"/>)}/>
-    <Route path="/animal/history" component={page("animal", <HistoryPage role="animal"/>)}/>
-    <Route path="/animal/notifications" component={page("animal", <NotificationsPage/>)}/>
-    <Route path="/animal/impact" component={page("animal", <ImpactPage/>)}/>
-    <Route path="/animal/profile" component={page("animal", <ProfilePage/>)}/>
+    <Route path="/animal"><Protected role="animal"><RecipientDashboard role="animal"/></Protected></Route>
+    <Route path="/animal/finder"><Protected role="animal"><FinderPage role="animal"/></Protected></Route>
+    <Route path="/animal/requests"><Protected role="animal"><MyRequestsPage role="animal"/></Protected></Route>
+    <Route path="/animal/pickup"><Protected role="animal"><PickupQrPage role="animal"/></Protected></Route>
+    <Route path="/animal/history"><Protected role="animal"><HistoryPage role="animal"/></Protected></Route>
+    <Route path="/animal/notifications"><Protected role="animal"><NotificationsPage/></Protected></Route>
+    <Route path="/animal/impact"><Protected role="animal"><ImpactPage/></Protected></Route>
+    <Route path="/animal/profile"><Protected role="animal"><ProfilePage/></Protected></Route>
     <Route path="/animal/needs"><Redirect to="/animal/profile"/></Route>
 
-    <Route path="/admin" component={() => <Protected adminOnly><AdminPage/></Protected>}/>
+    <Route path="/admin"><Protected adminOnly><AdminPage/></Protected></Route>
 
     <Route path="/404" component={NotFound}/>
     <Route component={NotFound}/>
@@ -67,5 +67,5 @@ function Router() {
 }
 
 export default function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><SessionProvider><Toaster/><Router/></SessionProvider></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><LanguageProvider>{() => <ThemeProvider defaultTheme="light"><TooltipProvider><SessionProvider><Toaster containerAriaLabel={tr("Notifications")}/><Router/></SessionProvider></TooltipProvider></ThemeProvider>}</LanguageProvider></ErrorBoundary>;
 }

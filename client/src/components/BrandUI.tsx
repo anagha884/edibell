@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { tr } from "@/i18n";
 import { Link } from "wouter";
 import { HeartHandshake, Leaf, Utensils, type LucideIcon } from "lucide-react";
 import { BackButton } from "./BackButton";
+import { LanguageSelector } from "./LanguageSelector";
 
 export function Brand({ light = false }: { light?: boolean }) {
   return <Link href="/" className={`brand ${light ? "brand-light" : ""}`}>
@@ -11,7 +13,7 @@ export function Brand({ light = false }: { light?: boolean }) {
 }
 
 export function PublicHeader({ back }: { back?: string } = {}) {
-  return <header className="public-header">{back ? <div className="eb-back-brand"><BackButton fallback={back}/><Brand/></div> : <Brand/>}<nav><Link href="/">Home</Link><a href="/#how-it-works">How It Works</a><a href="/#food-safety">Food Safety</a><a href="/#about">About</a><a href="/#impact">Impact</a><a href="/#contact">Contact Us</a></nav><div className="public-actions"><Link href="/login">Login</Link><Link className="button button-small" href="/register">Get Started</Link></div></header>;
+  return <header className="public-header">{back ? <div className="eb-back-brand"><BackButton fallback={back}/><Brand/></div> : <Brand/>}<nav><Link href="/">{tr("Home")}</Link><a href="/#how-it-works">{tr("How It Works")}</a><a href="/#food-safety">{tr("Food Safety")}</a><a href="/#about">{tr("About")}</a><a href="/#impact">{tr("Impact")}</a><a href="/#contact">{tr("Contact Us")}</a></nav><div className="public-actions"><LanguageSelector/><Link href="/login">{tr("Login")}</Link><Link className="button button-small" href="/register">{tr("Get Started")}</Link></div></header>;
 }
 
 export function PageHeading({ eyebrow, title, subtitle, action }: { eyebrow?: string; title: string; subtitle?: string; action?: ReactNode }) {
@@ -39,5 +41,5 @@ export function TinyBars({ values = [38, 55, 47, 72, 61, 89, 65] }: { values?: n
 }
 
 export function LeafFooter() {
-  return <footer className="leaf-footer"><div className="footer-brand"><Brand/><span>Rescue Food · Feed People · Nourish Animals</span></div><div className="footer-path"><HeartHandshake size={22}/><div><b>Human Food Pathway</b><small>Registered NGOs · Handover via QR</small></div></div><div className="footer-path"><Utensils size={22}/><div><b>Animal Feed Pathway</b><small>Suitable food · Registered animal partners</small></div></div><div className="footer-note">Good food<br/><b>reaches the right place.</b></div></footer>;
+  return <footer className="leaf-footer"><div className="footer-brand"><Brand/><span>{tr("Rescue Food · Feed People · Nourish Animals")}</span></div><div className="footer-path"><HeartHandshake size={22}/><div><b>{tr("Human Food Pathway")}</b><small>{tr("Registered NGOs · Handover via QR")}</small></div></div><div className="footer-path"><Utensils size={22}/><div><b>{tr("Animal Feed Pathway")}</b><small>{tr("Suitable food · Registered animal partners")}</small></div></div><div className="footer-note">{tr("Good food")}<br/><b>{tr("reaches the right place.")}</b></div></footer>;
 }

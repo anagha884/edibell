@@ -17,3 +17,5 @@ node tests/e2e/map.e2e.mjs "${BASE_URL:-http://localhost:3000}" "$OUT"
 node tests/e2e/contact.e2e.mjs "${BASE_URL:-http://localhost:3000}" "$OUT"
 # Back arrow + browser history behaviour.
 node tests/e2e/navigation.e2e.mjs "${BASE_URL:-http://localhost:3000}" "$OUT"
+# Languages: selector, persistence, untranslated-text scan, layout in Kannada/Hindi.
+node tests/e2e/i18n.e2e.mjs "${BASE_URL:-http://localhost:3000}" "$OUT"

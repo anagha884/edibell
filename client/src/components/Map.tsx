@@ -14,6 +14,7 @@
  * Without a key the components say so plainly; they never pretend to work.
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { tr, trServer } from "@/i18n";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin, Navigation } from "lucide-react";
@@ -92,9 +93,9 @@ export function directionsUrl(lat: number | null | undefined, lng: number | null
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
 }
 
-export function DirectionsLink({ lat, lng, address, label = "Open directions in Google Maps" }: { lat?: number | null; lng?: number | null; address?: string; label?: string }) {
+export function DirectionsLink({ lat, lng, address, label }: { lat?: number | null; lng?: number | null; address?: string; label?: string }) {
   if (lat == null && !address) return null;
-  return <a className="eb-directions" href={directionsUrl(lat, lng, address)} target="_blank" rel="noreferrer"><Navigation size={12}/> {label}</a>;
+  return <a className="eb-directions" href={directionsUrl(lat, lng, address)} target="_blank" rel="noreferrer"><Navigation size={12}/> {label ?? tr("Open directions in Google Maps")}</a>;
 }
 
 export function PickupLocationPicker({ onSelect, initial }: { onSelect: (location: PickupLocation) => void; initial?: { latitude: number | null; longitude: number | null } }) {
@@ -126,8 +127,8 @@ export function PickupLocationPicker({ onSelect, initial }: { onSelect: (locatio
     try {
       const [best] = await geoapify("reverse", { lat: String(lat), lon: String(lon) });
       if (best) { setError(""); place({ ...best, lat, lon }, false); }
-      else setError("No address was found for that map pin. Try a nearby point or search for the address.");
-    } catch (e) { setError(e instanceof Error ? e.message : "The address for that pin could not be looked up."); }
+      else setError(tr("No address was found for that map pin. Try a nearby point or search for the address."));
+    } catch (e) { setError(e instanceof Error ? e.message : tr("The address for that pin could not be looked up.")); }
   };
   const reverseRef = useRef(reverse);
   reverseRef.current = reverse;
@@ -161,7 +162,7 @@ export function PickupLocationPicker({ onSelect, initial }: { onSelect: (locatio
         const found = await geoapify("autocomplete", params, ctrl.signal);
         setResults(found); setActive(-1); setOpen(true); setError("");
       } catch (e) {
-        if ((e as Error).name !== "AbortError") { setResults([]); setError(e instanceof Error ? e.message : "Address search failed."); }
+        if ((e as Error).name !== "AbortError") { setResults([]); setError(e instanceof Error ? e.message : tr("Address search failed.")); }
       } finally { if (!ctrl.signal.aborted) setSearching(false); }
     }, 300);
     return () => { window.clearTimeout(t); ctrl.abort(); };
@@ -177,12 +178,12 @@ export function PickupLocationPicker({ onSelect, initial }: { onSelect: (locatio
   };
 
   return <div className="eb-map-picker">
-    {MAPS_KEY && <label className="form-field eb-place-search"><span>Search pickup address</span>
+    {MAPS_KEY && <label className="form-field eb-place-search"><span>{tr("Search pickup address")}</span>
       <input type="search" role="combobox" aria-expanded={open && results.length > 0} aria-controls="eb-place-results" aria-autocomplete="list"
-        aria-activedescendant={active >= 0 ? `eb-place-${active}` : undefined} autoComplete="off" placeholder="Start typing the pickup address"
+        aria-activedescendant={active >= 0 ? `eb-place-${active}` : undefined} autoComplete="off" placeholder={tr("Start typing the pickup address")}
         value={query} onChange={e => { setQuery(e.target.value); setOpen(true); }} onKeyDown={onKey}
         onFocus={() => results.length && setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 150)}/>
-      {open && query.trim().length >= 3 && !searching && results.length === 0 && !error && <small className="eb-hint">No matching address. Try a landmark or area name, or click the map.</small>}
+      {open && query.trim().length >= 3 && !searching && results.length === 0 && !error && <small className="eb-hint">{tr("No matching address. Try a landmark or area name, or click the map.")}</small>}
       {open && results.length > 0 && <ul id="eb-place-results" role="listbox" className="eb-place-results">
         {results.map((r, i) => <li key={`${r.place_id ?? i}`} id={`eb-place-${i}`} role="option" aria-selected={i === active} className={i === active ? "active" : ""}
           onMouseDown={e => { e.preventDefault(); choose(r); }}>
@@ -190,10 +191,10 @@ export function PickupLocationPicker({ onSelect, initial }: { onSelect: (locatio
         </li>)}
       </ul>}
     </label>}
-    {searching && <small className="eb-hint">Searching…</small>}
-    {error && <p className="eb-error" role="alert">{error}</p>}
-    {MAPS_KEY && <div ref={mapRef} className="eb-map-canvas" aria-label="Pickup location map. Click or drag the pin to adjust."/>}
-    {MAPS_KEY && <small className="eb-hint">Pick a suggestion, then click the map or drag the pin to the exact pickup point.</small>}
+    {searching && <small className="eb-hint">{tr("Searching…")}</small>}
+    {error && <p className="eb-error" role="alert">{trServer(error)}</p>}
+    {MAPS_KEY && <div ref={mapRef} className="eb-map-canvas" aria-label={tr("Pickup location map. Click or drag the pin to adjust.")}/>}
+    {MAPS_KEY && <small className="eb-hint">{tr("Pick a suggestion, then click the map or drag the pin to the exact pickup point.")}</small>}
   </div>;
 }
 
@@ -208,10 +209,10 @@ export function LocationPreview({ lat, lng, address }: { lat: number | null; lng
     return () => { window.clearTimeout(t); map.remove(); };
   }, [lat, lng]);
   return <div className="eb-location-preview">
-    <p><MapPin size={13}/> {address || "No address"}</p>
+    <p><MapPin size={13}/> {address || tr("No address")}</p>
     {lat != null && lng != null
-      ? <>{MAPS_KEY ? <div ref={ref} className="eb-map-canvas small" aria-label="Pickup location preview"/> : <small className="eb-hint">Pin saved at {lat.toFixed(5)}, {lng.toFixed(5)}.</small>}
-        <DirectionsLink lat={lat} lng={lng} label="Check this point in Google Maps"/></>
-      : <small className="eb-warn-text">No map pin selected. Recipients will get directions from the address text only.</small>}
+      ? <>{MAPS_KEY ? <div ref={ref} className="eb-map-canvas small" aria-label={tr("Pickup location preview")}/> : <small className="eb-hint">{tr("Pin saved at {lat}, {lng}.", { lat: lat.toFixed(5), lng: lng.toFixed(5) })}</small>}
+        <DirectionsLink lat={lat} lng={lng} label={tr("Check this point in Google Maps")}/></>
+      : <small className="eb-warn-text">{tr("No map pin selected. Recipients will get directions from the address text only.")}</small>}
   </div>;
 }

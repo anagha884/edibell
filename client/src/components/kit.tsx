@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { localeFor, tr, trServer } from "@/i18n";
 import { AlertTriangle, Camera, Check, Eye, EyeOff, ImagePlus, Loader2, Utensils, X } from "lucide-react";
 import type { RequestStatus } from "@shared/edibell";
 import { Status } from "./BrandUI";
@@ -6,18 +7,18 @@ import { FOOD_PHOTO_BUCKET, photoUrl, supabase } from "@/lib/supabase";
 
 // ---------- formatting ---------------------------------------------------
 export const fmtDateTime = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—";
+  iso ? new Date(iso).toLocaleString(localeFor(), { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—";
 export const fmtDate = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
-const timeOnly = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  iso ? new Date(iso).toLocaleDateString(localeFor(), { day: "numeric", month: "short", year: "numeric" }) : "—";
+const timeOnly = (iso: string) => new Date(iso).toLocaleTimeString(localeFor(), { hour: "numeric", minute: "2-digit" });
 export function fmtWindow(start: string, end: string) {
   const s = new Date(start), e = new Date(end);
   const sameDay = s.toDateString() === e.toDateString();
   return sameDay
-    ? `${s.toLocaleDateString(undefined, { day: "numeric", month: "short" })}, ${timeOnly(start)} – ${timeOnly(end)}`
+    ? `${s.toLocaleDateString(localeFor(), { day: "numeric", month: "short" })}, ${timeOnly(start)} – ${timeOnly(end)}`
     : `${fmtDateTime(start)} – ${fmtDateTime(end)}`;
 }
-export const fmtQty = (n: number, unit: string) => `${Math.round(n * 100) / 100} ${unit}`;
+export const fmtQty = (n: number, unit: string) => `${Math.round(n * 100) / 100} ${tr(unit)}`;
 /** value for <input type="datetime-local"> in the browser's local time */
 export function toLocalInput(d: Date | string) {
   const x = typeof d === "string" ? new Date(d) : d;
@@ -32,16 +33,16 @@ const tone: Record<RequestStatus, "green" | "amber" | "red" | "blue" | "gray"> =
   pending: "amber", accepted: "blue", declined: "red", cancelled: "gray", completed: "green", expired: "gray",
 };
 export function RequestStatusPill({ status }: { status: RequestStatus }) {
-  return <Status tone={tone[status]}>{status[0].toUpperCase() + status.slice(1)}</Status>;
+  return <Status tone={tone[status]}>{tr(status[0].toUpperCase() + status.slice(1))}</Status>;
 }
 
 // ---------- states -------------------------------------------------------
-export function Loading({ label = "Loading…" }: { label?: string }) {
-  return <div className="eb-loading" role="status"><Loader2 size={16} className="eb-spin"/> {label}</div>;
+export function Loading({ label }: { label?: string }) {
+  return <div className="eb-loading" role="status"><Loader2 size={16} className="eb-spin"/> {label ?? tr("Loading…")}</div>;
 }
 export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () => void }) {
   if (!message) return null;
-  return <div className="eb-error" role="alert"><AlertTriangle size={15}/><span>{message}</span>{onRetry && <button type="button" className="text-button" onClick={onRetry}>Retry</button>}</div>;
+  return <div className="eb-error" role="alert"><AlertTriangle size={15}/><span>{trServer(message)}</span>{onRetry && <button type="button" className="text-button" onClick={onRetry}>{tr("Retry")}</button>}</div>;
 }
 export function Empty({ title, children, icon }: { title: string; children?: ReactNode; icon?: ReactNode }) {
   return <div className="eb-empty">{icon}<b>{title}</b>{children && <p>{children}</p>}</div>;
@@ -57,15 +58,15 @@ export function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputElement>,
   const [shown, setShown] = useState(false);
   return <span className="eb-password">
     <input {...props} type={shown ? "text" : "password"} autoCapitalize="none" spellCheck={false}/>
-    <button type="button" className="eb-password-toggle" aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown}
-      title={shown ? "Hide password" : "Show password"} onClick={() => setShown(v => !v)}>{shown ? <EyeOff size={15}/> : <Eye size={15}/>}</button>
+    <button type="button" className="eb-password-toggle" aria-label={shown ? tr("Hide password") : tr("Show password")} aria-pressed={shown}
+      title={shown ? tr("Hide password") : tr("Show password")} onClick={() => setShown(v => !v)}>{shown ? <EyeOff size={15}/> : <Eye size={15}/>}</button>
   </span>;
 }
 
 export function ChipSelect({ options, value, onChange, max }: { options: readonly string[]; value: string[]; onChange: (v: string[]) => void; max?: number }) {
   const toggle = (o: string) => onChange(value.includes(o) ? value.filter(x => x !== o) : max && value.length >= max ? value : [...value, o]);
   return <div className="eb-chips" role="group">{options.map(o =>
-    <button type="button" key={o} className={`eb-chip ${value.includes(o) ? "on" : ""}`} aria-pressed={value.includes(o)} onClick={() => toggle(o)}>{value.includes(o) && <Check size={11}/>}{o}</button>)}</div>;
+    <button type="button" key={o} className={`eb-chip ${value.includes(o) ? "on" : ""}`} aria-pressed={value.includes(o)} onClick={() => toggle(o)}>{value.includes(o) && <Check size={11}/>}{tr(o)}</button>)}</div>;
 }
 
 export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
@@ -78,7 +79,7 @@ export function Modal({ title, onClose, children, wide }: { title: string; onClo
   }, [onClose]);
   return <div className="eb-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
     <div className={`eb-modal ${wide ? "wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
-      <header><h2>{title}</h2><button type="button" className="icon-button" aria-label="Close" onClick={onClose}><X size={16}/></button></header>
+      <header><h2>{title}</h2><button type="button" className="icon-button" aria-label={tr("Close")} onClick={onClose}><X size={16}/></button></header>
       <div className="eb-modal-body">{children}</div>
     </div>
   </div>;
@@ -117,12 +118,12 @@ export function PhotoPicker({ value, onChange, ownerId, max = 5 }: { value: stri
     if (!files) return;
     setErr("");
     const sb = supabase;
-    if (!sb) { setErr("Photo upload needs the Supabase backend to be configured."); return; }
+    if (!sb) { setErr(tr("Photo upload needs the Supabase backend to be configured.")); return; }
     let next = [...value];
     for (const f of Array.from(files)) {
-      if (next.length >= max) { setErr(`You can add up to ${max} photos.`); break; }
-      if (!ACCEPTED.includes(f.type)) { setErr("Only JPEG, PNG or WebP photos can be added."); continue; }
-      if (f.size > MAX_SOURCE_BYTES) { setErr("That photo is too large (max 15 MB before resizing)."); continue; }
+      if (next.length >= max) { setErr(tr("You can add up to {n} photos.", { n: max })); break; }
+      if (!ACCEPTED.includes(f.type)) { setErr(tr("Only JPEG, PNG or WebP photos can be added.")); continue; }
+      if (f.size > MAX_SOURCE_BYTES) { setErr(tr("That photo is too large (max 15 MB before resizing).")); continue; }
       setUploading(n => n + 1);
       try {
         const blob = await shrinkImage(f);
@@ -131,7 +132,7 @@ export function PhotoPicker({ value, onChange, ownerId, max = 5 }: { value: stri
         if (error) throw new Error(/row-level security|unauthorized/i.test(error.message) ? "Only food donors can upload food photos." : `Upload failed: ${error.message}`);
         next = [...next, path];
         onChange(next);
-      } catch (e) { setErr(e instanceof Error ? e.message : "Couldn't add that photo."); }
+      } catch (e) { setErr(e instanceof Error ? e.message : tr("Couldn't add that photo.")); }
       finally { setUploading(n => n - 1); }
     }
     if (input.current) input.current.value = "";
@@ -143,23 +144,23 @@ export function PhotoPicker({ value, onChange, ownerId, max = 5 }: { value: stri
   };
   return <div>
     <div className="eb-photos">
-      {value.map((path, i) => <div className="eb-photo" key={path}><img src={photoUrl(path)} alt={`Food photo ${i + 1}`}/><button type="button" aria-label={`Remove photo ${i + 1}`} onClick={() => remove(path)}><X size={12}/></button></div>)}
-      {uploading > 0 && <div className="eb-photo add" aria-live="polite"><Loader2 size={20} className="eb-spin"/><span>Uploading…</span></div>}
-      {value.length + uploading < max && <button type="button" className="eb-photo add" onClick={() => input.current?.click()}><ImagePlus size={20}/><span>Add photo</span></button>}
+      {value.map((path, i) => <div className="eb-photo" key={path}><img src={photoUrl(path)} alt={tr("Food photo {n}", { n: i + 1 })}/><button type="button" aria-label={tr("Remove photo {n}", { n: i + 1 })} onClick={() => remove(path)}><X size={12}/></button></div>)}
+      {uploading > 0 && <div className="eb-photo add" aria-live="polite"><Loader2 size={20} className="eb-spin"/><span>{tr("Uploading…")}</span></div>}
+      {value.length + uploading < max && <button type="button" className="eb-photo add" onClick={() => input.current?.click()}><ImagePlus size={20}/><span>{tr("Add photo")}</span></button>}
     </div>
     <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={e => void add(e.target.files)}/>
     {err && <p className="eb-field-error" role="alert">{err}</p>}
-    <small className="eb-hint"><Camera size={11}/> Up to {max} real photos of this food (JPEG, PNG or WebP). They're resized and location data is removed.</small>
+    <small className="eb-hint"><Camera size={11}/> {tr("Up to {n} real photos of this food (JPEG, PNG or WebP). They're resized and location data is removed.", { n: max })}</small>
   </div>;
 }
 
 /** The donor's own photo of this food, or a neutral placeholder. Never a stock photo. */
 export function FoodThumb({ src, alt, className = "" }: { src?: string; alt: string; className?: string }) {
-  return src ? <img className={`eb-thumb ${className}`} src={src} alt={alt} loading="lazy"/> : <div className={`eb-thumb eb-thumb-empty ${className}`} role="img" aria-label="No photo provided"><Utensils size={20}/></div>;
+  return src ? <img className={`eb-thumb ${className}`} src={src} alt={alt} loading="lazy"/> : <div className={`eb-thumb eb-thumb-empty ${className}`} role="img" aria-label={tr("No photo provided")}><Utensils size={20}/></div>;
 }
 
 export function BarList({ rows, unit = "kg" }: { rows: { label: string; value: number }[]; unit?: string }) {
   const max = Math.max(1, ...rows.map(r => r.value));
-  if (!rows.length) return <p className="eb-muted">No completed pickups yet.</p>;
-  return <ul className="eb-bars">{rows.map(r => <li key={r.label}><span>{r.label}</span><div><i style={{ width: `${Math.max(3, (r.value / max) * 100)}%` }}/></div><b>{Math.round(r.value * 10) / 10} {unit}</b></li>)}</ul>;
+  if (!rows.length) return <p className="eb-muted">{tr("No completed pickups yet.")}</p>;
+  return <ul className="eb-bars">{rows.map(r => <li key={r.label}><span>{r.label}</span><div><i style={{ width: `${Math.max(3, (r.value / max) * 100)}%` }}/></div><b>{Math.round(r.value * 10) / 10} {tr(unit)}</b></li>)}</ul>;
 }

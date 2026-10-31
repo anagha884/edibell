@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { useSession } from "@/auth/session";
 import { currentNav } from "@/lib/navHistory";
+import { tr } from "@/i18n";
 
 const AUTH_PAGES = ["/login", "/register", "/forgot-password", "/reset-password"];
 const PORTAL_PREFIXES = ["/donor", "/ngo", "/animal", "/admin"];
@@ -30,5 +31,5 @@ export function BackButton({ fallback, className = "" }: { fallback: string; cla
   if (!prevUsable && pathOf(fallback) === pathOf(path)) return null;
 
   const goBack = () => { if (prevUsable) window.history.back(); else setLocation(fallback); };
-  return <button type="button" className={`eb-back ${className}`} onClick={goBack} aria-label="Go back" title="Go back"><ArrowLeft size={18} strokeWidth={2.2}/></button>;
+  return <button type="button" className={`eb-back ${className}`} onClick={goBack} aria-label={tr("Go back")} title={tr("Go back")}><ArrowLeft size={18} strokeWidth={2.2}/></button>;
 }

@@ -13,6 +13,7 @@
     "test:db": "bash tests/db/reset.sh && vitest run -c vitest.db.config.ts",
     "db:push": "supabase db push",
     "check:supabase": "node scripts/check-supabase.mjs",
+    "check:i18n": "node scripts/i18n-check.mjs",
     "db:bundle": "node scripts/bundle-migrations.mjs"
   },
   "dependencies": {
